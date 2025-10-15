@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free Fire Giveaway Simulator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+    
+    /* CSS Custom Properties */
+    :root {
+      --primary: #00d4ff;
+      --secondary: #007bff;
+      --accent: #ff4444;
+      --dark: #0c0c2e;
+      --darker: #05051a;
+      --glass: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --particle-color: rgba(0, 212, 255, 0.5);
+    }
+    
+    * {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: linear-gradient(to bottom, var(--darker), var(--dark));
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, var(--primary), var(--secondary));
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+    
+    body {
+      background: linear-gradient(135deg, var(--darker), var(--dark), #1a1a4a);
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-attachment: fixed;
+      perspective: 1000px;
+    }
+    
+    /* Particle System */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+    
+    .particle {
+      position: absolute;
+      background: var(--particle-color);
+      border-radius: 50%;
+      animation: float 15s infinite linear;
+      filter: blur(1px);
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+    
+    /* Parallax Layers */
+    .parallax-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+    
+    .layer-1 {
+      background: radial-gradient(circle at 20% 80%, rgba(0, 123, 255, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(255, 68, 68, 0.1) 0%, transparent 50%);
+      transform: translateZ(-300px) scale(2);
+    }
+    
+    .layer-2 {
+      background: radial-gradient(circle at 60% 40%, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
+      transform: translateZ(-150px) scale(1.5);
+    }
+    
+    /* Page Layout */
+    .page {
+      display: none;
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      animation: fadeIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .active-page {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px) rotateX(10deg); }
+      to { opacity: 1; transform: translateY(0) rotateX(0); }
+    }
+    
+    /* Glassmorphism Elements */
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      transform-style: preserve-3d;
+      animation: headerFloat 6s ease-in-out infinite;
+    }
+    
+    @keyframes headerFloat {
+      0%, 100% { transform: translateY(0) rotateX(0); }
+      50% { transform: translateY(-10px) rotateX(5deg); }
+    }
+    
+    .logo {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.7)) brightness(1.2);
+      margin-bottom: 10px;
+      animation: logoPulse 3s ease-in-out infinite;
+    }
+    
+    @keyframes logoPulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.7)); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(0, 255, 255, 0.9)); }
+    }
+    
+    .countdown {
+      font-size: 1.2rem;
+      margin-top: 8px;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+    
+    .timer {
+      color: var(--accent);
+      font-size: 2rem;
+      letter-spacing: 6px;
+      margin-top: 4px;
+      text-shadow: 0 0 10px rgba(255, 68, 68, 0.7);
+      animation: timerGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes timerGlow {
+      from { text-shadow: 0 0 10px rgba(255, 68, 68, 0.7); }
+      to { text-shadow: 0 0 20px rgba(255, 68, 68, 1), 0 0 30px rgba(255, 68, 68, 0.5); }
+    }
+    
+    .giveaway-section {
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    .giveaway-image {
+      width: 100%;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+      margin-top: 10px;
+      border: 2px solid var(--primary);
+      clip-path: polygon(0 0, 100% 0, 100% 85%, 95% 100%, 5% 100%, 0 85%);
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      filter: brightness(1.1) drop-shadow(0 10px 15px rgba(0, 0, 0, 0.3));
+    }
+    
+    .giveaway-image:hover {
+      transform: translateY(-10px) rotateX(10deg);
+      box-shadow: 0 15px 30px rgba(0, 255, 255, 0.5);
+      clip-path: polygon(0 0, 100% 0, 100% 90%, 90% 100%, 10% 100%, 0 90%);
+    }
+    
+    .checkbox-group {
+      margin: 15px 0;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 15px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      transform-style: preserve-3d;
+      transition: all 0.4s ease;
+    }
+    
+    .checkbox-group:hover {
+      transform: translateY(-5px) rotateX(5deg);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .checkbox-group label {
+      display: block;
+      margin: 10px 0;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .checkbox-group label:hover {
+      color: var(--primary);
+      transform: translateX(5px);
+    }
+    
+    input[type="text"] {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      padding: 15px;
+      border-radius: 12px;
+      color: #fff;
+      width: 100%;
+      outline: none;
+      font-size: 1rem;
+      text-align: center;
+      margin-bottom: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.4s ease;
+    }
+    
+    input[type="text"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+      transform: scale(1.02);
+    }
+    
+    select {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      font-size: 1rem;
+      margin-bottom: 15px;
+      width: 100%;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.4s ease;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300d4ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      background-size: 16px;
+    }
+    
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+      transform: scale(1.02);
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      color: #fff;
+      border: none;
+      padding: 16px 24px;
+      border-radius: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+      width: 100%;
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+      z-index: -1;
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 12px 30px rgba(0, 123, 255, 0.6);
+    }
+    
+    .btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+    
+    .btn:disabled {
+      background: #555;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    /* 3D Interactive Cards */
+    .section {
+      width: 100%;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      margin: 20px auto;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid var(--glass-border);
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+    
+    .section:hover { 
+      transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .section h2 {
+      background: linear-gradient(135deg, #003566, #0066aa);
+      padding: 15px;
+      text-align: center;
+      color: var(--primary);
+      font-size: 1.3rem;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    
+    .section img {
+      width: 100%;
+      display: block;
+      transition: all 0.5s ease;
+      filter: brightness(0.9);
+    }
+    
+    .section:hover img {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+    
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 999;
+      backdrop-filter: blur(10px);
+    }
+    
+    #overlay p {
+      color: #fff;
+      font-size: 1.5rem;
+      margin-top: 20px;
+      text-align: center;
+      animation: textPulse 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes textPulse {
+      from { opacity: 0.7; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    .loading {
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top: 5px solid var(--primary);
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      animation: spin 1.5s linear infinite, glow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes glow {
+      from { box-shadow: 0 0 10px rgba(0, 212, 255, 0.5); }
+      to { box-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 0 0 30px rgba(0, 212, 255, 0.4); }
+    }
+    
+    .account-box {
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      padding: 25px;
+      border-radius: 20px;
+      text-align: center;
+      color: #fff;
+      margin-top: 20px;
+      width: 100%;
+      box-shadow: 0 15px 35px rgba(0, 255, 255, 0.2);
+      animation: fadeIn 1s ease;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+      transform-style: preserve-3d;
+      transition: all 0.5s ease;
+    }
+    
+    .account-box:hover {
+      transform: translateY(-5px) rotateX(5deg);
+      box-shadow: 0 20px 40px rgba(0, 255, 255, 0.3);
+    }
+    
+    .account-box span {
+      display: block;
+      margin: 10px 0;
+      font-size: 1.1rem;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    .promo-code {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: 3px;
+      margin: 20px 0;
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      animation: promoGlow 3s ease-in-out infinite alternate;
+    }
+    
+    @keyframes promoGlow {
+      from { text-shadow: 0 0 10px rgba(0, 212, 255, 0.5); }
+      to { text-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 0 0 30px rgba(0, 212, 255, 0.6); }
+    }
+    
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      margin: 25px 0;
+      position: relative;
+    }
+    
+    .step {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--glass);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 15px;
+      font-weight: 700;
+      border: 2px solid var(--glass-border);
+      transition: all 0.4s ease;
+      z-index: 2;
+    }
+    
+    .step.active {
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.7);
+      transform: scale(1.1);
+    }
+    
+    .step-line {
+      position: absolute;
+      top: 50%;
+      width: 80px;
+      height: 3px;
+      background: var(--glass);
+      margin-top: -1.5px;
+      transition: all 0.4s ease;
+    }
+    
+    .step-line.active {
+      background: var(--primary);
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+    
+    .back-btn {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      border: 1px solid var(--glass-border);
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.4s ease;
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .copy-btn {
+      background: rgba(0, 212, 255, 0.2);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(0, 212, 255, 0.5);
+      color: var(--primary);
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: all 0.4s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+    
+    .copy-btn:hover {
+      background: rgba(0, 212, 255, 0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+    }
+    
+    .status {
+      color: var(--accent);
+      font-weight: 700;
+      margin-top: 15px;
+      text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+      animation: statusPulse 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes statusPulse {
+      from { opacity: 0.8; }
+      to { opacity: 1; }
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .page {
+        padding: 15px;
+        max-width: 100%;
+      }
+      
+      .logo {
+        max-width: 300px;
+      }
+      
+      .timer {
+        font-size: 1.7rem;
+        letter-spacing: 4px;
+      }
+      
+      .section h2 {
+        font-size: 1.2rem;
+        padding: 12px;
+      }
+      
+      .promo-code {
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+      }
+      
+      .step {
+        width: 35px;
+        height: 35px;
+        margin: 0 10px;
+      }
+      
+      .step-line {
+        width: 60px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .logo {
+        max-width: 250px;
+      }
+      
+      .timer {
+        font-size: 1.5rem;
+      }
+      
+      .btn, .back-btn, .copy-btn {
+        padding: 14px 20px;
+        font-size: 1rem;
+      }
+      
+      .account-box {
+        padding: 20px;
+      }
+    }
+    
+    /* Scroll-linked Animations */
+    @keyframes scrollReveal {
+      from {
+        opacity: 0;
+        transform: translateY(50px) rotateX(15deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+      }
+    }
+    
+    .scroll-reveal {
+      animation: scrollReveal linear;
+      animation-timeline: view();
+      animation-range: entry 0% cover 40%;
+    }
+  </style>
+</head>
+<body>
+  <!-- Parallax Background Layers -->
+  <div class="parallax-layer layer-1"></div>
+  <div class="parallax-layer layer-2"></div>
+  
+  <!-- Particle System -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Page 1: Main Giveaway Page -->
+  <div id="page1" class="page active-page scroll-reveal">
+    <header>
+      <img src="Banner1.png" alt="Free Fire Logo" class="logo">
+      <div class="countdown">
+        GIVEAWAY CLOSE IN
+        <div class="timer" id="timer">01:00:00</div>
+      </div>
+    </header>
+
+    <div class="giveaway-section">
+      <img src="Preview.png" alt="Giveaway Preview" class="giveaway-image">
+      <p style="margin-top: 15px; font-size: 1.3rem; font-weight: 700;">Free Fire IDs and Passwords</p>
+    </div>
+
+    <div class="checkbox-group">
+      <label><input type="checkbox" checked> <i class="fas fa-user-plus"></i> NEW FOLLOWER</label>
+      <label><input type="checkbox" checked> <i class="fas fa-user-check"></i> OLD FOLLOWER</label>
+    </div>
+
+    <select id="server">
+      <option value="">Select Server</option>
+      <option>India</option>
+      <option>Indonesia</option>
+      <option>Brazil</option>
+      <option>Singapore</option>
+      <option>Europe</option>
+    </select>
+
+    <input type="text" id="promoInput" placeholder="Enter Promo Code..." readonly />
+    
+    <button class="btn" id="downloadBtn">
+      <i class="fas fa-download"></i> DOWNLOAD PROMO CODE
+    </button>
+
+    <div id="contentAfterDownload" class="hidden">
+      <div class="section">
+        <h2>PROFILE</h2>
+        <img src="Profile.png" alt="Profile Section">
+      </div>
+      
+      <div class="section">
+        <h2>WEAPONS</h2>
+        <img src="weapons.png" alt="Weapons Section">
+      </div>
+      
+      <div class="section">
+        <h2>EMOTES</h2>
+        <img src="Emotes.png" alt="Emotes Section">
+      </div>
+
+      <button class="btn" id="continueBtn1">
+        CONTINUE <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Page 2: Account Generation -->
+  <div id="page2" class="page scroll-reveal">
+    <header>
+      <img src="Banner2.png" alt="Free Fire Logo" class="logo">
+      <h2>YOUR ACCOUNT DETAILS</h2>
+    </header>
+    
+    <div class="step-indicator">
+      <div class="step active">1</div>
+      <div class="step-line active"></div>
+      <div class="step active">2</div>
+    </div>
+    
+    <div class="account-box">
+      <h3><i class="fas fa-user-circle"></i> ACCOUNT INFORMATION</h3>
+      <span id="accountServer">Server: India</span>
+      <span id="accountUID">UID: 123456789</span>
+      <span id="accountEmail">Email: player1234@gmail.com</span>
+      <span id="accountPassword">Password: FF1234!</span>
+      <span class="promo-code" id="accountPromo">Promo Code: FF-ABC123</span>
+      <div class="status">STATUS: <span id="accountStatus">ALREADY IN USE</span></div>
+      
+      <button class="copy-btn" id="copyBtn">
+        <i class="fas fa-copy"></i> COPY ACCOUNT DETAILS
+      </button>
+    </div>
+    
+    <div class="checkbox-group">
+      <p><i class="fas fa-info-circle"></i> Your account has been successfully generated. Please note that this is a simulator for demonstration purposes only.</p>
+    </div>
+    
+    <button class="btn" id="finishBtn">
+      <i class="fas fa-check-circle"></i> FINISH
+    </button>
+    
+    <button class="back-btn" id="backBtn">
+      <i class="fas fa-arrow-left"></i> BACK
+    </button>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="overlay">
+    <div class="loading"></div>
+    <p>Please wait...</p>
+  </div>
+
+  <script>
+    // Generate particles
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      const particleCount = 50;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        // Random properties
+        const size = Math.random() * 10 + 5;
+        const left = Math.random() * 100;
+        const animationDuration = Math.random() * 20 + 10;
+        const animationDelay = Math.random() * 5;
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${left}%`;
+        particle.style.animationDuration = `${animationDuration}s`;
+        particle.style.animationDelay = `${animationDelay}s`;
+        
+        particlesContainer.appendChild(particle);
+      }
+    }
+    
+    // Initialize particles
+    createParticles();
+    
+    // Page navigation
+    const pages = document.querySelectorAll('.page');
+    const page1 = document.getElementById('page1');
+    const page2 = document.getElementById('page2');
+    
+    // Buttons
+    const downloadBtn = document.getElementById('downloadBtn');
+    const continueBtn1 = document.getElementById('continueBtn1');
+    const backBtn = document.getElementById('backBtn');
+    const finishBtn = document.getElementById('finishBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    
+    // Elements
+    const overlay = document.getElementById('overlay');
+    const promoInput = document.getElementById('promoInput');
+    const serverSelect = document.getElementById('server');
+    const contentAfterDownload = document.getElementById('contentAfterDownload');
+    
+    // Account details elements
+    const accountServer = document.getElementById('accountServer');
+    const accountUID = document.getElementById('accountUID');
+    const accountEmail = document.getElementById('accountEmail');
+    const accountPassword = document.getElementById('accountPassword');
+    const accountPromo = document.getElementById('accountPromo');
+    const accountStatus = document.getElementById('accountStatus');
+    
+    // Timer simulation
+    let countdown = 3600;
+    const timerElement = document.getElementById('timer');
+    
+    const updateTimer = () => {
+      let h = Math.floor(countdown/3600);
+      let m = Math.floor((countdown%3600)/60);
+      let s = countdown%60;
+      timerElement.innerText = 
+        `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      if(countdown>0) countdown--;
+    };
+    
+    setInterval(updateTimer, 1000);
+    updateTimer();
+    
+    // Page navigation functions
+    const showPage = (page) => {
+      pages.forEach(p => p.classList.remove('active-page'));
+      page.classList.add('active-page');
+      window.scrollTo(0, 0);
+    };
+    
+    // Event listeners for navigation
+    downloadBtn.addEventListener('click', () => {
+      if(serverSelect.value === "") {
+        alert("Please select a server!");
+        return;
+      }
+      
+      // Open download link in new tab
+      window.open("https://control.kochava.com/v1/cpi/click?campaign_id=kozz76680614-x8jn746d49c845582&network_id=8411", "_blank");
+      
+      // Show loading overlay
+      overlay.style.display = 'flex';
+      
+      // Simulate download and installation process
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        
+        // Generate and auto-fill promo code
+        const promo = "FF-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+        sessionStorage.setItem("promoCode", promo);
+        sessionStorage.setItem("selectedServer", serverSelect.value);
+        promoInput.value = "******";
+        
+        // Show profile, weapons, emotes and continue button
+        contentAfterDownload.classList.remove('hidden');
+        
+        alert("Download complete! App installed and opened.\nPromo Code auto-applied.");
+      }, 4000);
+    });
+    
+    continueBtn1.addEventListener('click', () => {
+      generateAccount();
+      showPage(page2);
+    });
+    
+    backBtn.addEventListener('click', () => showPage(page1));
+    
+    finishBtn.addEventListener('click', () => {
+      alert("Thank you for using Free Fire Giveaway Simulator!");
+      showPage(page1);
+      // Reset the page
+      contentAfterDownload.classList.add('hidden');
+      promoInput.value = "";
+      serverSelect.value = "";
+    });
+    
+    // Generate account details
+    function generateAccount() {
+      const promo = sessionStorage.getItem("promoCode") || "FF-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const selectedServer = sessionStorage.getItem("selectedServer") || "India";
+      const randomId = "ID" + Math.floor(Math.random() * 10000000);
+      const email = `player${Math.floor(Math.random() * 9999)}@gmail.com`;
+      const pass = `FF${Math.floor(Math.random() * 10000)}!`;
+      
+      accountServer.textContent = `Server: ${selectedServer}`;
+      accountUID.textContent = `UID: ${randomId}`;
+      accountEmail.textContent = `Email: ${email}`;
+      accountPassword.textContent = `Password: ${pass}`;
+      accountPromo.textContent = `Promo Code: ${promo}`;
+    }
+    
+    // Copy account details
+    copyBtn.addEventListener('click', () => {
+      const accountDetails = 
+        `Server: ${accountServer.textContent.split(': ')[1]}\n` +
+        `UID: ${accountUID.textContent.split(': ')[1]}\n` +
+        `Email: ${accountEmail.textContent.split(': ')[1]}\n` +
+        `Password: ${accountPassword.textContent.split(': ')[1]}\n` +
+        `Promo Code: ${accountPromo.textContent.split(': ')[1]}`;
+      
+      navigator.clipboard.writeText(accountDetails)
+        .then(() => {
+          alert("Account details copied to clipboard!");
+        })
+        .catch(err => {
+          console.error('Failed to copy: ', err);
+          alert("Failed to copy account details. Please try again.");
+        });
+    });
+    
+    // Add mouse move effect for 3D cards
+    document.addEventListener('mousemove', (e) => {
+      const cards = document.querySelectorAll('.section, .account-box, .checkbox-group');
+      const mouseX = e.clientX / window.innerWidth;
+      const mouseY = e.clientY / window.innerHeight;
+      
+      cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const cardX = rect.left + rect.width / 2;
+        const cardY = rect.top + rect.height / 2;
+        
+        const angleX = (mouseY - cardY / window.innerHeight) * 10;
+        const angleY = (mouseX - cardX / window.innerWidth) * -10;
+        
+        card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) translateZ(10px)`;
+      });
+    });
+  </script>
+</body>
+</html>
